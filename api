@@ -1,0 +1,12 @@
+// const apiObj = {
+//   apiKey: "8d776a5ce06b8435644dd465925d71b9",
+// };
+
+// const Api = () => {
+//   const api = `http://api.musixmatch.com/ws/1.1/matcher.lyrics.get?q_track=sexy and i know it&q_artist=lmfao&apikey=${apiKey}`;
+//   fetch(api)
+//     .then((res) => res.json())
+//     .then((data) => {
+//       console.log(data);
+//     });
+// };

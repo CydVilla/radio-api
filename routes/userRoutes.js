@@ -1,8 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
+const Song = require("../models/song")
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
+const ObjectId = require('mongodb').ObjectId;
+// const multer = require('multer');
+
+var AWS = require("aws-sdk");
+var fs = require('fs');
+var path = require('path');
 
 const {
   getToken,
@@ -11,11 +18,15 @@ const {
   verifyUser,
 } = require("../authenticate");
 
-const session = require('express-session');
-router.use(session({ secret: 'melody hensley is my spirit animal' }));
+
+AWS.config.getCredentials(function(err) {
+  if (err) console.log(err.stack);
+  else {
+    console.log("Access key:", AWS.config.credentials.accessKeyId);
+  }
+});
 
 router.post("/signup", (req, res, next) => {
-  // Verify that first name is not empty
   if (!req.body.firstName) {
     res.statusCode = 500;
     res.send({
@@ -85,7 +96,6 @@ router.post("/refreshToken", (req, res, next) => {
       User.findOne({ _id: userId }).then(
         (user) => {
           if (user) {
-            // Find the refresh token against the user record in database
             const tokenIndex = user.refreshToken.findIndex(
               (item) => item.refreshToken === refreshToken
             );
@@ -95,7 +105,6 @@ router.post("/refreshToken", (req, res, next) => {
               res.send("Unauthorized");
             } else {
               const token = getToken({ _id: userId });
-              // If the refresh token exists, then create new one and replace it.
               const newRefreshToken = getRefreshToken({ _id: userId });
               user.refreshToken[tokenIndex] = { refreshToken: newRefreshToken };
               user.save((err, user) => {
@@ -155,4 +164,129 @@ router.get("/logout", verifyUser, (req, res, next) => {
     (err) => next(err)
   );
 });
+
+// let storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'public/song/')
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, file.fieldname + '-' + Date.now() + ".mp3")
+//   }
+// })
+// let upload = multer({storage: storage})
+
+router.get("/myUploads", verifyUser, (req, res) => {
+  console.log(req.user._id, 'ayy')
+  const song = new Song()
+  const songs = Song.find({
+    uploadedBy: req.user._id
+  },(err, result) => {
+    console.log(result) 
+    res.send(result)
+  })
+})
+
+router.get("/getSongs", (req, res) => {
+  const songs = Song.find({
+  },(err, result) => {
+    console.log(result, 'yerrr') 
+    res.send(result)
+  })
+})
+
+router.put("/myUpdate", verifyUser, async (req, res) => {
+  console.log(req.body.id, 'pp')
+const field = req.body.field
+  Song.findOneAndUpdate({'_id' : ObjectId(req.body.id)}, {
+    $set: {
+      [field] : req.body.value
+    }
+  }, {
+    sort: {_id: -1},
+    upsert: false
+  }, (err, result) => {
+    if (err) return res.send(err)
+    res.send(result)
+  })})
+
+  router.delete("/trash", verifyUser, async (req, res) => {
+    console.log(req.body, 'trash')
+    const ids = req.body.ids.map(id => ObjectId(id))
+    let myquery = { _id: { $in: ids } };
+   Song.deleteMany(myquery, function(err, obj) {
+      if (err) throw err;
+      console.log(obj, 'ow')
+      res.send({
+        success : 'ok'
+      })
+    });
+  })
+
+router.post("/upload", verifyUser, async (req, res) => {
+// Set the region 
+AWS.config.update({region: 'us-east-1'});
+console.log(req.user._id, 'seth')
+// // Create S3 service object
+var s3 = new AWS.S3({apiVersion: '2006-03-01'});
+
+// // call S3 to retrieve upload file to specified bucket
+var uploadParams = {Bucket: 'jetsetradio', Key: '', Body: ''};
+var audioFileName = req.body.audio.fileName
+
+var uploadParamsArt = {Bucket: 'jetsetradio', Key: '', Body: ''};
+var artFileName = req.body.art.fileName
+
+// // Configure the file stream and obtain the upload parameters
+// var fileStream = fs.createReadStream(file);
+// fileStream.on('error', function(err) {
+//   console.log('File Error', err);
+// });
+
+uploadParams.Body = new Buffer.from(req.body.audio.file.replace(/^data:audio\/mpeg\/\w+;base64,/, ""), 'base64')
+uploadParams.Key = path.basename(audioFileName);
+
+uploadParamsArt.Body = new Buffer.from(req.body.art.file.replace(/^data:image\/\w+;base64,/, ""), 'base64')
+
+uploadParamsArt.Key = path.basename(artFileName);
+
+// // call S3 to retrieve upload file to specified bucket
+let audioPath;
+ s3.upload (uploadParams, function (err, data) {
+  if (err) {
+    console.log("Error", err);
+  } if (data) {
+    console.log("Upload Success", data.Location);
+    audioPath = data.Location
+
+let artPath;
+ s3.upload (uploadParamsArt, function (err, data) {
+  if (err) {
+    console.log("Error", err);
+  } if (data) {
+    console.log("Upload Success", data.Location);
+    artPath = data.Location
+    const song = new Song(
+      {
+        uploadedBy: req.user._id,
+        title: req.body.audio.fileName,
+        artist: req.body.artist,
+        year: req.body.year,
+        albumArt: artPath,
+        src: audioPath
+      }
+    )
+    song.save(
+      
+    )
+  }
+})
+  }
+})
+
+ 
+})
+
+
+
+
 module.exports = router;
