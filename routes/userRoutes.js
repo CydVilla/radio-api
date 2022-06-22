@@ -176,10 +176,18 @@ router.get("/logout", verifyUser, (req, res, next) => {
 // let upload = multer({storage: storage})
 
 router.get("/myUploads", verifyUser, (req, res) => {
-  console.log(req.user._id, 'ayy')
   const song = new Song()
   const songs = Song.find({
     uploadedBy: req.user._id
+  },(err, result) => {
+    console.log(result) 
+    res.send(result)
+  })
+})
+
+router.get("/allUploads", verifyUser, (req, res) => {
+  const song = new Song()
+  const songs = Song.find({
   },(err, result) => {
     console.log(result) 
     res.send(result)

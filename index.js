@@ -28,7 +28,6 @@ app.use(cookieParser(process.env.COOKIE_SECRET))
 const whitelist = process.env.WHITELISTED_DOMAINS
   ? process.env.WHITELISTED_DOMAINS.split(",")
   : []
-
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || whitelist.indexOf(origin) !== -1) {
@@ -54,7 +53,6 @@ passport.serializeUser(function(user, done) {
 
 
 passport.deserializeUser(function(id, done) {
-  console.log(id , 'yo')
   // User.findById(id, function (err, user) {
   //   done(err, user);
   // });
