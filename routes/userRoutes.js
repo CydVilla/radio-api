@@ -84,7 +84,6 @@ router.post("/login", passport.authenticate("local"), (req, res, next) => {
 router.post("/refreshToken", (req, res, next) => {
   const { signedCookies = {} } = req;
   const { refreshToken } = signedCookies;
-
   if (refreshToken) {
     try {
       const payload = jwt.verify(
@@ -97,8 +96,7 @@ router.post("/refreshToken", (req, res, next) => {
           if (user) {
             const tokenIndex = user.refreshToken.findIndex(
               (item) => item.refreshToken === refreshToken
-            );
-
+            )
             if (tokenIndex === -1) {
               res.statusCode = 401;
               res.send("Unauthorized");
