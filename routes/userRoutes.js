@@ -1,14 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
-const Song = require("../models/song")
+const Song = require("../models/song");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
-const ObjectId = require('mongodb').ObjectId;
+const ObjectId = require("mongodb").ObjectId;
 
 var AWS = require("aws-sdk");
-var fs = require('fs');
-var path = require('path');
+var fs = require("fs");
+var path = require("path");
 
 const {
   getToken,
@@ -17,8 +17,7 @@ const {
   verifyUser,
 } = require("../authenticate");
 
-
-AWS.config.getCredentials(function(err) {
+AWS.config.getCredentials(function (err) {
   if (err) console.log(err.stack);
   else {
     console.log("Access key:", AWS.config.credentials.accessKeyId);
@@ -96,7 +95,7 @@ router.post("/refreshToken", (req, res, next) => {
           if (user) {
             const tokenIndex = user.refreshToken.findIndex(
               (item) => item.refreshToken === refreshToken
-            )
+            );
             if (tokenIndex === -1) {
               res.statusCode = 401;
               res.send("Unauthorized");
@@ -163,125 +162,131 @@ router.get("/logout", verifyUser, (req, res, next) => {
 });
 
 router.get("/myUploads", verifyUser, (req, res) => {
-  const song = new Song()
-  const songs = Song.find({
-    uploadedBy: req.user._id
-  },(err, result) => {
-    console.log(result) 
-    res.send(result)
-  })
-})
+  const song = new Song();
+  const songs = Song.find(
+    {
+      uploadedBy: req.user._id,
+    },
+    (err, result) => {
+      console.log(result);
+      res.send(result);
+    }
+  );
+});
 
 router.get("/allUploads", verifyUser, (req, res) => {
-  const song = new Song()
-  const songs = Song.find({
-  },(err, result) => {
-    console.log(result) 
-    res.send(result)
-  })
-})
+  const song = new Song();
+  const songs = Song.find({}, (err, result) => {
+    console.log(result);
+    res.send(result);
+  });
+});
 
 router.get("/getSongs", (req, res) => {
-  const songs = Song.find({
-  },(err, result) => {
-    console.log(result, 'yerrr') 
-    res.send(result)
-  })
-})
+  const songs = Song.find({}, (err, result) => {
+    console.log(result, "yerrr");
+    res.send(result);
+  });
+});
 
 router.put("/myUpdate", verifyUser, async (req, res) => {
-  console.log(req.body.id, 'pp')
-const field = req.body.field
-  Song.findOneAndUpdate({'_id' : ObjectId(req.body.id)}, {
-    $set: {
-      [field] : req.body.value
+  console.log(req.body.id, "pp");
+  const field = req.body.field;
+  Song.findOneAndUpdate(
+    { _id: ObjectId(req.body.id) },
+    {
+      $set: {
+        [field]: req.body.value,
+      },
+    },
+    {
+      sort: { _id: -1 },
+      upsert: false,
+    },
+    (err, result) => {
+      if (err) return res.send(err);
+      res.send(result);
     }
-  }, {
-    sort: {_id: -1},
-    upsert: false
-  }, (err, result) => {
-    if (err) return res.send(err)
-    res.send(result)
-  })})
+  );
+});
 
-  router.delete("/trash", verifyUser, async (req, res) => {
-    console.log(req.body, 'trash')
-    const ids = req.body.ids.map(id => ObjectId(id))
-    let myquery = { _id: { $in: ids } };
-   Song.deleteMany(myquery, function(err, obj) {
-      if (err) throw err;
-      console.log(obj, 'ow')
-      res.send({
-        success : 'ok'
-      })
+router.delete("/trash", verifyUser, async (req, res) => {
+  console.log(req.body, "trash");
+  const ids = req.body.ids.map((id) => ObjectId(id));
+  let myquery = { _id: { $in: ids } };
+  Song.deleteMany(myquery, function (err, obj) {
+    if (err) throw err;
+    console.log(obj, "ow");
+    res.send({
+      success: "ok",
     });
-  })
+  });
+});
 
 router.post("/upload", verifyUser, async (req, res) => {
-// Set the region 
-AWS.config.update({region: 'us-east-1'});
-console.log(req.user._id, 'seth')
-// // Create S3 service object
-var s3 = new AWS.S3({apiVersion: '2006-03-01'});
+  // Set the region
+  AWS.config.update({ region: "us-east-1" });
+  console.log(req.user._id, "seth");
+  // // Create S3 service object
+  var s3 = new AWS.S3({ apiVersion: "2006-03-01" });
 
-// // call S3 to retrieve upload file to specified bucket
-var uploadParams = {Bucket: 'jetsetradio', Key: '', Body: ''};
-var audioFileName = req.body.audio.fileName
+  // // call S3 to retrieve upload file to specified bucket
+  var uploadParams = { Bucket: "jetsetradio", Key: "", Body: "" };
+  var audioFileName = req.body.audio.fileName;
 
-var uploadParamsArt = {Bucket: 'jetsetradio', Key: '', Body: ''};
-var artFileName = req.body.art.fileName
+  var uploadParamsArt = { Bucket: "jetsetradio", Key: "", Body: "" };
+  var artFileName = req.body.art.fileName;
 
-// // Configure the file stream and obtain the upload parameters
-// var fileStream = fs.createReadStream(file);
-// fileStream.on('error', function(err) {
-//   console.log('File Error', err);
-// });
+  // // Configure the file stream and obtain the upload parameters
+  // var fileStream = fs.createReadStream(file);
+  // fileStream.on('error', function(err) {
+  //   console.log('File Error', err);
+  // });
 
-uploadParams.Body = new Buffer.from(req.body.audio.file.replace(/^data:audio\/mpeg\/\w+;base64,/, ""), 'base64')
-uploadParams.Key = path.basename(audioFileName);
+  uploadParams.Body = new Buffer.from(
+    req.body.audio.file.replace(/^data:audio\/mpeg\/\w+;base64,/, ""),
+    "base64"
+  );
+  uploadParams.Key = path.basename(audioFileName);
 
-uploadParamsArt.Body = new Buffer.from(req.body.art.file.replace(/^data:image\/\w+;base64,/, ""), 'base64')
+  uploadParamsArt.Body = new Buffer.from(
+    req.body.art.file.replace(/^data:image\/\w+;base64,/, ""),
+    "base64"
+  );
 
-uploadParamsArt.Key = path.basename(artFileName);
+  uploadParamsArt.Key = path.basename(artFileName);
 
-// // call S3 to retrieve upload file to specified bucket
-let audioPath;
- s3.upload (uploadParams, function (err, data) {
-  if (err) {
-    console.log("Error", err);
-  } if (data) {
-    console.log("Upload Success", data.Location);
-    audioPath = data.Location
+  // // call S3 to retrieve upload file to specified bucket
+  let audioPath;
+  s3.upload(uploadParams, function (err, data) {
+    if (err) {
+      console.log("Error", err);
+    }
+    if (data) {
+      console.log("Upload Success", data.Location);
+      audioPath = data.Location;
 
-let artPath;
- s3.upload (uploadParamsArt, function (err, data) {
-  if (err) {
-    console.log("Error", err);
-  } if (data) {
-    console.log("Upload Success", data.Location);
-    artPath = data.Location
-    const song = new Song(
-      {
-        uploadedBy: req.user._id,
-        title: req.body.audio.fileName,
-        artist: req.body.artist,
-        year: req.body.year,
-        albumArt: artPath,
-        src: audioPath
-      }
-    )
-    song.save(
-      
-    )
-  }
-})
-  }
-})
-
- 
-})
-
-
-
+      let artPath;
+      s3.upload(uploadParamsArt, function (err, data) {
+        if (err) {
+          console.log("Error", err);
+        }
+        if (data) {
+          console.log("Upload Success", data.Location);
+          artPath = data.Location;
+          const song = new Song({
+            uploadedBy: req.user._id,
+            title: req.body.audio.fileName,
+            artist: req.body.artist,
+            year: req.body.year,
+            albumArt: artPath,
+            src: audioPath,
+          });
+          song.save();
+        }
+      });
+    }
+  });
+});
 
 module.exports = router;
