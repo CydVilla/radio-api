@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken")
 const dev = process.env.NODE_ENV !== "production"
 
 exports.COOKIE_OPTIONS = {
-  httpOnly: true,
+  // httpOnly: true,
   // secure: true,
   secure: !dev,
   signed: true,
