@@ -7,6 +7,7 @@ const session = require("express-session");
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
+
 require("./utils/connectdb");
 
 require("./strategies/JwtStrategy");
@@ -21,8 +22,10 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
+const domainsFromEnv = process.env.CORS_DOMAINS || ""
 
-const whitelist = process.env.WHITELISTED_DOMAINS ? process.env.WHITELISTED_DOMAINS.split(",") : []
+
+const whitelist = domainsFromEnv.split(",").map(item => item.trim())
 
 const corsOptions = {
   origin: function (origin, callback) {
