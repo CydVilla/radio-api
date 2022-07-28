@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser");
 const passport = require("passport");
 const session = require("express-session");
@@ -18,6 +19,7 @@ const userRouter = require("./routes/userRoutes");
 
 const app = express();
 
+app.use(bodyParser.json())
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
