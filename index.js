@@ -36,9 +36,9 @@ const corsOptions = {
     }
   },
   credentials: true,
+  preflightContinue: false,
 };
 
-app.use(cors(corsOptions));
 
 
 app.use(
@@ -57,6 +57,8 @@ passport.serializeUser(function (user, done) {
 passport.deserializeUser(function (id, done) {
   done(null, id);
 });
+
+app.use(cors(corsOptions));
 
 app.use(passport.initialize());
 
