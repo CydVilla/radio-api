@@ -4,9 +4,8 @@ const dev = process.env.NODE_ENV !== "production"
 
 exports.COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true,
-  // secure: !dev,
-  domain: 'https://get-set-radio.herokuapp.com',
+  // secure: true,
+  secure: !dev,
   signed: true,
   maxAge: eval(process.env.REFRESH_TOKEN_EXPIRY) * 1000,
   sameSite: "none",
