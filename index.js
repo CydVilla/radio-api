@@ -24,7 +24,6 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 
 const domainsFromEnv = process.env.CORS_DOMAINS || ""
 
-
 const whitelist = domainsFromEnv.split(",").map(item => item.trim())
 
 const corsOptions = {
@@ -36,9 +35,7 @@ const corsOptions = {
     }
   },
   credentials: true,
-  preflightContinue: false,
 };
-
 
 
 app.use(
@@ -50,7 +47,6 @@ app.use(
 );
 
 passport.serializeUser(function (user, done) {
-  console.log(user, "sup");
   done(null, user.id);
 });
 
