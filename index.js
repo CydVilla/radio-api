@@ -21,6 +21,7 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
+
 const whitelist = process.env.WHITELISTED_DOMAINS
   ? process.env.WHITELISTED_DOMAINS.split(",")
   : []
@@ -35,8 +36,6 @@ const corsOptions = {
   },
   credentials: true,
 };
-
-
 
 app.use(
   session({
@@ -55,7 +54,7 @@ passport.deserializeUser(function (id, done) {
   done(null, id);
 });
 
-app.use(cors(corsOptions))
+app.use(cors(corsOptions));
 
 app.use(passport.initialize());
 
