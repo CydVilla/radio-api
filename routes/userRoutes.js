@@ -164,16 +164,6 @@ router.get("/logout", verifyUser, (req, res, next) => {
   );
 });
 
-// let storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, 'public/song/')
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, file.fieldname + '-' + Date.now() + ".mp3")
-//   }
-// })
-// let upload = multer({storage: storage})
-
 router.get("/myUploads", verifyUser, (req, res) => {
   const song = new Song()
   const songs = Song.find({
