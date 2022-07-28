@@ -6,7 +6,7 @@ exports.COOKIE_OPTIONS = {
   httpOnly: true,
   secure: true,
   // secure: !dev,
-  domain: process.env.CORS_DOMAINS,
+  domain: 'https://get-set-radio.herokuapp.com',
   signed: true,
   maxAge: eval(process.env.REFRESH_TOKEN_EXPIRY) * 1000,
   sameSite: "none",
